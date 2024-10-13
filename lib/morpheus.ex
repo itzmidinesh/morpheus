@@ -5,9 +5,8 @@ defmodule Morpheus do
 
   def camel_to_snake(string) when is_binary(string) do
     string
-    |> String.replace(~r/([A-Z])/, "_\\1")
+    |> String.replace(~r/(?<=[a-z])(?=[A-Z])|\B(?=[A-Z][a-z])/, "_")
     |> String.downcase()
-    |> String.trim_leading("_")
   end
 
   def camel_to_snake(atom) when is_atom(atom) do
