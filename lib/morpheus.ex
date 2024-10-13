@@ -11,6 +11,33 @@ defmodule Morpheus do
   - `camel_to_snake/1`: Converts camelCase to snake_case
   - `snake_to_camel/1`: Converts snake_case to camelCase
   - `convert_map_keys/2`: Recursively converts keys in maps and lists using a provided conversion function
+
+  ...
+
+  ## Examples
+
+    iex> Morpheus.snake_to_camel("user_name")
+    "userName"
+
+    iex> Morpheus.camel_to_snake("userName")
+    "user_name"
+
+    iex> Morpheus.snake_to_camel("API")
+    "api"
+
+    iex> Morpheus.camel_to_snake("APIResponse")
+    "api_response"
+
+    iex> Morpheus.snake_to_camel(:user_name)
+    :userName
+
+    iex> Morpheus.convert_map_keys(%{"user_name" => "John Doe"}, &Morpheus.snake_to_camel/1)
+    %{"userName" => "John Doe"}
+
+    iex> Morpheus.convert_map_keys([%{userName: "John Doe"}], &Morpheus.camel_to_snake/1)
+    [%{user_name: "John Doe"}]
+
+  ...
   """
 
   @doc """
@@ -71,6 +98,9 @@ defmodule Morpheus do
 
       iex> Morpheus.snake_to_camel(:user_first_name)
       :userFirstName
+
+      iex> Morpheus.snake_to_camel("user__name")
+      "userName"
 
       iex> Morpheus.snake_to_camel("API_key")
       "apiKey"
@@ -133,6 +163,10 @@ defmodule Morpheus do
       iex> data = [%{user_id: 1, user_name: "John"}, %{user_id: 2, user_name: "Jane"}]
       iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
       [%{userId: 1, userName: "John"}, %{userId: 2, userName: "Jane"}]
+
+      iex> data = %{"user_name" => "John", last_name: "Doe"}
+      iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
+      %{"userName" => "John", lastName: "Doe"}
 
       iex> Morpheus.convert_map_keys("not_a_map", &Morpheus.snake_to_camel/1)
       "not_a_map"
