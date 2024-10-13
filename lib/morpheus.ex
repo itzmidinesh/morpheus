@@ -18,4 +18,18 @@ defmodule Morpheus do
   end
 
   defp downcase_first(<<first::utf8, rest::binary>>), do: String.downcase(<<first>>) <> rest
+
+  def convert_map_keys(map, conversion_function) when is_map(map) do
+    map
+    |> Enum.map(fn {key, value} ->
+      {conversion_function.(key), convert_map_keys(value, conversion_function)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  def convert_map_keys(list, conversion_function) when is_list(list) do
+    Enum.map(list, &convert_map_keys(&1, conversion_function))
+  end
+
+  def convert_map_keys(value, _conversion_function), do: value
 end
