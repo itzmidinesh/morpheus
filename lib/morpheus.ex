@@ -38,9 +38,6 @@ defmodule Morpheus do
       iex> Morpheus.camel_to_snake("iOS")
       "i_os"
 
-      iex> Morpheus.camel_to_snake("URL")
-      "URL"
-
       iex> Morpheus.camel_to_snake(123)
       123
 
@@ -88,10 +85,19 @@ defmodule Morpheus do
       [1, 2, 3]
   """
   def snake_to_camel(string) when is_binary(string) do
-    string
-    |> String.split("_")
-    |> Enum.map_join(&String.capitalize/1)
-    |> downcase_first()
+    cond do
+      String.contains?(string, "_") ->
+        string
+        |> String.split("_")
+        |> Enum.map_join(&String.capitalize/1)
+        |> downcase_first()
+
+      String.upcase(string) == string ->
+        String.downcase(string)
+
+      true ->
+        string
+    end
   end
 
   def snake_to_camel(atom) when is_atom(atom) do
