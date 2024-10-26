@@ -2,6 +2,15 @@
 
 Morpheus is an Elixir library designed to seamlessly convert between `camelCase` and `snake_case` in Phoenix projects. It provides a simple and efficient way to transform map keys, making it easier to work with different naming conventions in your APIs.
 
+## Motivation
+
+This library was inspired by [proper_case](https://hex.pm/packages/proper_case), which hasn't been updated since May 2020. Morpheus was created as a modern alternative with:
+
+- Compatibility with latest Elixir (1.17)
+- Minimal dependencies (only Jason required)
+- Focus on the most common use case: converting between snake_case and camelCase
+- Lightweight and simple API
+
 ## Features
 
 - Convert map keys from `snake_case` to `camelCase` and vice versa
