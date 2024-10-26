@@ -1,42 +1,61 @@
 defmodule Morpheus.Plugs.SnakeCaseParams do
   @moduledoc """
-  A plug to convert incoming request parameters from camelCase to snake_case.
+  A Phoenix plug that converts incoming request parameters from camelCase to snake_case.
 
-  This plug automatically converts all keys in the request parameters from camelCase
-  to snake_case format. It handles nested maps and lists.
+  Automatically converts parameter keys in incoming requests to match Elixir's snake_case
+  convention, letting you work with consistent naming in your Phoenix controllers.
 
-  ## Usage
+  ## Setup
 
-  Add this plug to your router pipeline:
+  Add to your router pipeline:
 
-  ```elixir
-  pipeline :api do
-    plug :accepts, ["json"]
-    plug Morpheus.Plugs.SnakeCaseParams
-  end
-  ```
+      pipeline :api do
+        plug :accepts, ["json"]
+        plug Morpheus.Plugs.SnakeCaseParams
+      end
 
-  ## Behavior
+  ## Example
 
-  - The plug converts all parameter keys recursively, including those in nested maps and lists.
-  - It does not modify the values of the parameters, only the keys.
-  - The conversion is done in-place, modifying the `params` field of the connection.
+      # Incoming request with params:
+      %{
+        "userName" => "john_doe",
+        "userProfile" => %{
+          "firstName" => "John",
+          "lastName" => "Doe"
+        }
+      }
 
-  ## Limitations
+      # Parameters in your controller:
+      %{
+        "user_name" => "john_doe",
+        "user_profile" => %{
+          "first_name" => "John",
+          "last_name" => "Doe"
+        }
+      }
 
-  - This plug assumes that all camelCase keys should be converted. If you have keys that
-    should remain in camelCase, you may need to handle those cases separately.
+  ## Key Features
+
+    * Recursive conversion of nested maps and lists
+    * Works with both query parameters and request body
+    * Converts all parameter keys while preserving values
+    * Zero configuration required
+
+  ## Important Notes
+
+    * All camelCase keys will be converted to snake_case
+    * The conversion modifies the `params` field of the connection
+    * If you need to preserve certain camelCase keys, handle them separately in your controller
   """
 
   @doc """
   Initializes the plug with the given options.
 
-  This function is called at compile time and allows for configuration of the plug.
-  Currently, it doesn't use any options but is included for future extensibility.
+  Called at compile time. Currently accepts options for future extensibility.
 
   ## Parameters
 
-    * `opts` - A keyword list of options (currently unused).
+    * `opts` - A keyword list of options (currently unused)
 
   ## Returns
 
@@ -45,25 +64,33 @@ defmodule Morpheus.Plugs.SnakeCaseParams do
   def init(opts), do: opts
 
   @doc """
-  Converts the keys in the connection's params from camelCase to snake_case.
+  Converts connection parameters from camelCase to snake_case.
 
-  This function is called at runtime for each request that goes through the plug.
+  Called at runtime for each request. Processes both URL query parameters
+  and request body parameters.
 
   ## Parameters
 
-    * `conn` - The `Plug.Conn` struct representing the current connection.
-    * `_opts` - The options returned by `init/1` (currently unused).
+    * `conn` - The `Plug.Conn` struct for the current connection
+    * `_opts` - Options from `init/1` (currently unused)
 
   ## Returns
 
-  Returns the updated `conn` struct with modified `params`.
+  Returns the updated connection with converted parameters.
 
   ## Examples
 
-      # Assuming a request with params: %{"userName" => "John", "userAge" => 30}
+      # Basic parameter conversion
+      # Given a request to "/users?userName=john"
       conn = Morpheus.Plugs.SnakeCaseParams.call(conn, [])
-      # conn.params will now be %{"user_name" => "John", "user_age" => 30}
+      conn.params
+      #=> %{"user_name" => "john"}
 
+      # Nested parameter conversion
+      # Given a POST with JSON: {"userProfile": {"firstName": "John"}}
+      conn = Morpheus.Plugs.SnakeCaseParams.call(conn, [])
+      conn.params
+      #=> %{"user_profile" => %{"first_name" => "John"}}
   """
   def call(%{params: params} = conn, _opts) do
     params = Morpheus.convert_map_keys(params, &Morpheus.camel_to_snake/1)

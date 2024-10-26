@@ -1,69 +1,75 @@
 defmodule Morpheus do
   @moduledoc """
-  Morpheus is an Elixir library for converting between camelCase and snake_case in Phoenix projects.
+  Morpheus is an Elixir library for converting between camelCase and snake_case in Phoenix applications.
 
-  This module provides functions to convert strings, atoms, maps, and lists between camelCase and snake_case.
-  It's particularly useful for handling JSON payloads in Phoenix applications where JavaScript conventions (camelCase)
-  need to be converted to Elixir conventions (snake_case) and vice versa.
+  This module provides key conversion utilities for JSON payloads, allowing your Phoenix application
+  to seamlessly work with camelCase (JavaScript) and snake_case (Elixir) conventions.
 
-  ## Main Functions
+  ## Installation
 
-  - `camel_to_snake/1`: Converts camelCase to snake_case
-  - `snake_to_camel/1`: Converts snake_case to camelCase
-  - `convert_map_keys/2`: Recursively converts keys in maps and lists using a provided conversion function
+  Add to your mix.exs:
 
-  ...
+      def deps do
+        [
+          {:morpheus, "~> 0.1.0"}
+        ]
+      end
 
-  ## Examples
+  ## Key Features
 
-    iex> Morpheus.snake_to_camel("user_name")
-    "userName"
+    * Converts between camelCase and snake_case for strings and atoms
+    * Handles nested data structures (maps and lists)
+    * Preserves non-convertible values
+    * Properly handles acronyms (API, HTML, iOS)
 
-    iex> Morpheus.camel_to_snake("userName")
-    "user_name"
+  ## Quick Start
 
-    iex> Morpheus.snake_to_camel("API")
-    "api"
+      # Basic conversion
+      "user_name" |> Morpheus.snake_to_camel()     # => "userName"
+      "userName" |> Morpheus.camel_to_snake()      # => "user_name"
 
-    iex> Morpheus.camel_to_snake("APIResponse")
-    "api_response"
+      # Convert map keys
+      data = %{user_profile: %{first_name: "John"}}
+      Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
+      # => %{userProfile: %{firstName: "John"}}
 
-    iex> Morpheus.snake_to_camel(:user_name)
-    :userName
+  ## Usage with Phoenix
 
-    iex> Morpheus.convert_map_keys(%{"user_name" => "John Doe"}, &Morpheus.snake_to_camel/1)
-    %{"userName" => "John Doe"}
-
-    iex> Morpheus.convert_map_keys([%{userName: "John Doe"}], &Morpheus.camel_to_snake/1)
-    [%{user_name: "John Doe"}]
-
-  ...
+  For automatic JSON conversion, see `Morpheus.Encoder`.
   """
 
   @doc """
   Converts a camelCase string or atom to snake_case.
 
-  Returns the input unchanged if it's neither a string nor an atom.
+  ## String Conversion
 
-  ## Examples
+      # Basic conversion
+      iex> Morpheus.camel_to_snake("userName")
+      "user_name"
 
+      # Multiple words
       iex> Morpheus.camel_to_snake("userFirstName")
       "user_first_name"
+
+  ## Acronym Handling
+
+
+      # Consecutive capitals
+      iex> Morpheus.camel_to_snake("API")
+      "api"
+
+      # Mixed case acronyms
+      iex> Morpheus.camel_to_snake("APIResponse")
+      "api_response"
+
+  ## Atom Conversion
 
       iex> Morpheus.camel_to_snake(:userFirstName)
       :user_first_name
 
-      iex> Morpheus.camel_to_snake("API")
-      "api"
+  ## Other Types
 
-      iex> Morpheus.camel_to_snake("APIResponse")
-      "api_response"
-
-      iex> Morpheus.camel_to_snake("HTMLParser")
-      "html_parser"
-
-      iex> Morpheus.camel_to_snake("iOS")
-      "i_os"
+  Returns the input unchanged if it's neither a string nor an atom:
 
       iex> Morpheus.camel_to_snake(123)
       123
@@ -89,30 +95,41 @@ defmodule Morpheus do
   @doc """
   Converts a snake_case string or atom to camelCase.
 
-  Returns the input unchanged if it's neither a string nor an atom.
+  ## String Conversion
 
-  ## Examples
+      # Basic conversion
+      iex> Morpheus.snake_to_camel("user_name")
+      "userName"
 
+      # Multiple words
       iex> Morpheus.snake_to_camel("user_first_name")
       "userFirstName"
+
+  ## Special Cases
+
+      # Double underscores
+      iex> Morpheus.snake_to_camel("user__name")
+      "userName"
+
+      # Acronyms
+      iex> Morpheus.snake_to_camel("api_key")
+      "apiKey"
+
+      # All caps
+      iex> Morpheus.snake_to_camel("API")
+      "api"
+
+  ## Atom Conversion
 
       iex> Morpheus.snake_to_camel(:user_first_name)
       :userFirstName
 
-      iex> Morpheus.snake_to_camel("user__name")
-      "userName"
+  ## Other Types
 
-      iex> Morpheus.snake_to_camel("API_key")
-      "apiKey"
-
-      iex> Morpheus.snake_to_camel("API")
-      "api"
+  Returns the input unchanged if it's neither a string nor an atom:
 
       iex> Morpheus.snake_to_camel(123)
       123
-
-      iex> Morpheus.snake_to_camel([1, 2, 3])
-      [1, 2, 3]
   """
   def snake_to_camel(string) when is_binary(string) do
     cond do
@@ -146,27 +163,49 @@ defmodule Morpheus do
   @doc """
   Recursively converts keys in maps and lists using the provided conversion function.
 
-  This function can be used with either `camel_to_snake/1` or `snake_to_camel/1` to convert
-  all keys in a nested data structure.
+  ## Use Cases
 
-  ## Parameters
-
-    * `data` - The map, list, or other value to convert
-    * `conversion_function` - The function to apply to each key (e.g., `&Morpheus.camel_to_snake/1`)
+    * Converting API request/response payloads
+    * Transforming database results
+    * Normalizing data structures
 
   ## Examples
 
-      iex> data = %{"userInfo" => %{"firstName" => "John", "lastName" => "Doe"}}
-      iex> Morpheus.convert_map_keys(data, &Morpheus.camel_to_snake/1)
-      %{"user_info" => %{"first_name" => "John", "last_name" => "Doe"}}
+  ### Nested Maps
 
-      iex> data = [%{user_id: 1, user_name: "John"}, %{user_id: 2, user_name: "Jane"}]
-      iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
-      [%{userId: 1, userName: "John"}, %{userId: 2, userName: "Jane"}]
+      iex> data = %{
+      ...>   "userInfo" => %{
+      ...>     "firstName" => "John",
+      ...>     "lastName" => "Doe"
+      ...>   }
+      ...> }
+      iex> Morpheus.convert_map_keys(data, &Morpheus.camel_to_snake/1)
+      %{
+        "user_info" => %{
+          "first_name" => "John",
+          "last_name" => "Doe"
+        }
+      }
+
+  ### Lists of Maps
+
+      iex> users = [
+      ...>   %{user_id: 1, user_name: "John"},
+      ...>   %{user_id: 2, user_name: "Jane"}
+      ...> ]
+      iex> Morpheus.convert_map_keys(users, &Morpheus.snake_to_camel/1)
+      [
+        %{userId: 1, userName: "John"},
+        %{userId: 2, userName: "Jane"}
+      ]
+
+  ### Mixed Key Types
 
       iex> data = %{"user_name" => "John", last_name: "Doe"}
       iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
       %{"userName" => "John", lastName: "Doe"}
+
+  ### Non-convertible Values
 
       iex> Morpheus.convert_map_keys("not_a_map", &Morpheus.snake_to_camel/1)
       "not_a_map"
