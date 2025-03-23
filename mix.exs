@@ -37,7 +37,7 @@ defmodule Morpheus.MixProject do
 
   defp package do
     [
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/itzmidinesh/morpheus"},
       maintainers: ["Dinesh Anbazhagan"],
