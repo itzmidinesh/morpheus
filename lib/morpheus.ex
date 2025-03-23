@@ -205,11 +205,23 @@ defmodule Morpheus do
       iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
       %{"userName" => "John", lastName: "Doe"}
 
+  ### Structs
+
+      iex> data = %{date: ~D[2025-03-23]}
+      iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
+      %{date: ~D[2025-03-23]}
+
+      iex> data = %{file: %Plug.Upload{path: "/tmp/file.txt", content_type: "text/plain", filename: "file.txt"}}
+      iex> Morpheus.convert_map_keys(data, &Morpheus.snake_to_camel/1)
+      %{file: %Plug.Upload{path: "/tmp/file.txt", content_type: "text/plain", filename: "file.txt"}}
+
   ### Non-convertible Values
 
       iex> Morpheus.convert_map_keys("not_a_map", &Morpheus.snake_to_camel/1)
       "not_a_map"
   """
+  def convert_map_keys(struct, _conversion_function) when is_struct(struct), do: struct
+
   def convert_map_keys(map, conversion_function) when is_map(map) do
     map
     |> Enum.map(fn {key, value} ->
