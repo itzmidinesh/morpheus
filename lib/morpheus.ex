@@ -210,6 +210,8 @@ defmodule Morpheus do
       iex> Morpheus.convert_map_keys("not_a_map", &Morpheus.snake_to_camel/1)
       "not_a_map"
   """
+  def convert_map_keys(%{__struct__: Plug.Upload} = value, _conversion_function), do: value
+    
   def convert_map_keys(map, conversion_function) when is_map(map) do
     map
     |> Enum.map(fn {key, value} ->
