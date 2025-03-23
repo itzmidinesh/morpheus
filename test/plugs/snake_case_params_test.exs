@@ -1,6 +1,6 @@
 defmodule Morpheus.Plugs.SnakeCaseParamsTest do
   use ExUnit.Case, async: true
-  use Plug.Test
+  import Plug.Test
 
   alias Morpheus.Plugs.SnakeCaseParams
 
