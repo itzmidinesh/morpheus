@@ -77,6 +77,68 @@ defmodule MorpheusTest do
   end
 
   describe "convert_map_keys/2" do
+    test "preserves date structs unchanged" do
+      date = ~D[2025-03-23]
+      assert Morpheus.convert_map_keys(date, &Morpheus.snake_to_camel/1) == date
+    end
+
+    test "preserves DateTime structs unchanged" do
+      datetime = DateTime.new!(~D[2025-03-23], ~T[10:00:00], "Etc/UTC")
+      assert Morpheus.convert_map_keys(datetime, &Morpheus.snake_to_camel/1) == datetime
+    end
+
+    test "preserves NaiveDateTime structs unchanged" do
+      naive_datetime = ~N[2025-03-23 10:00:00]
+
+      assert Morpheus.convert_map_keys(naive_datetime, &Morpheus.snake_to_camel/1) ==
+               naive_datetime
+    end
+
+    test "preserves Plug.Conn structs unchanged" do
+      conn = %Plug.Conn{adapter: {Plug.Adapters.Test.Conn, %{}}}
+      assert Morpheus.convert_map_keys(conn, &Morpheus.snake_to_camel/1) == conn
+    end
+
+    test "preserves Plug.Upload structs unchanged" do
+      upload = %Plug.Upload{
+        path: "/tmp/file.txt",
+        content_type: "text/plain",
+        filename: "file.txt"
+      }
+
+      assert Morpheus.convert_map_keys(upload, &Morpheus.snake_to_camel/1) == upload
+    end
+
+    test "preserves structs in nested data structures" do
+      input = %{
+        "user_info" => %{
+          "birth_date" => ~D[2025-03-23],
+          "birth_datetime" => DateTime.new!(~D[2025-03-23], ~T[10:00:00], "Etc/UTC"),
+          "birth_naive_datetime" => ~N[2025-03-23 10:00:00],
+          "example_conn" => %Plug.Conn{adapter: {Plug.Adapters.Test.Conn, %{}}},
+          "documents" => [
+            %Plug.Upload{path: "/tmp/doc1.txt", content_type: "text/plain", filename: "doc1.txt"},
+            %Plug.Upload{path: "/tmp/doc2.txt", content_type: "text/plain", filename: "doc2.txt"}
+          ]
+        }
+      }
+
+      expected = %{
+        "userInfo" => %{
+          "birthDate" => ~D[2025-03-23],
+          "birthDatetime" => DateTime.new!(~D[2025-03-23], ~T[10:00:00], "Etc/UTC"),
+          "birthNaiveDatetime" => ~N[2025-03-23 10:00:00],
+          "exampleConn" => %Plug.Conn{adapter: {Plug.Adapters.Test.Conn, %{}}},
+          "documents" => [
+            %Plug.Upload{path: "/tmp/doc1.txt", content_type: "text/plain", filename: "doc1.txt"},
+            %Plug.Upload{path: "/tmp/doc2.txt", content_type: "text/plain", filename: "doc2.txt"}
+          ]
+        }
+      }
+
+      assert Morpheus.convert_map_keys(input, &Morpheus.snake_to_camel/1) == expected
+    end
+
     test "converts keys in a simple map" do
       input = %{"user_name" => "John", "user_age" => 30}
       expected = %{"userName" => "John", "userAge" => 30}
