@@ -27,7 +27,7 @@ Add `morpheus` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:morpheus, "~> 0.1.0"}
+    {:morpheus, "~> 0.1.2"}
   ]
 end
 ```
